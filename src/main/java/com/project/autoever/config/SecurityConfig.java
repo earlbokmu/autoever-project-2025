@@ -42,8 +42,44 @@ public class SecurityConfig {
             .headers(headers -> headers
                 .frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))
             // Basic Auth 방식 사용
-            .httpBasic();
+            .httpBasic()
+            .and()
+            .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
             
         return http.build();
+    }
+
+    @Bean
+    public InMemoryUserDetailsManager userDetailsService() {
+        UserDetails admin1 = User.builder()
+            .username("admin")
+            .password(passwordEncoder().encode("1212"))
+            .roles("ADMIN")
+            .build();
+
+        UserDetails admin2 = User.builder()
+            .username("autoever")
+            .password(passwordEncoder().encode("1234"))
+            .roles("ADMIN")
+            .build();
+
+        UserDetails admin3 = User.builder()
+            .username("autoever2")
+            .password(passwordEncoder().encode("5678"))
+            .roles("ADMIN")
+            .build();
+
+        return new InMemoryUserDetailsManager(admin1, admin2, admin3);
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager(
+            AuthenticationConfiguration configuration) throws Exception {
+        return configuration.getAuthenticationManager();
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
     }
 }

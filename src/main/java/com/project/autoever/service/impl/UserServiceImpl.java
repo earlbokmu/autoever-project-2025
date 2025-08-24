@@ -1,6 +1,8 @@
 package com.project.autoever.service.impl;
 
 import com.project.autoever.constants.ExceptionMessage;
+import com.project.autoever.dto.UserInfoResponseDto;
+import com.project.autoever.dto.UserLoginRequestDto;
 import com.project.autoever.dto.UserRequestDto;
 import com.project.autoever.entity.User;
 import com.project.autoever.exception.CommonException;
@@ -8,6 +10,12 @@ import com.project.autoever.repository.UserRepository;
 import com.project.autoever.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.catalina.Authenticator;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,9 +28,11 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final AuthenticationManager authenticationManager;
 
     /**
-     * 사용자 등록
+     * {@inheritDoc}
      */
     @Override
     @Transactional
@@ -44,7 +54,7 @@ public class UserServiceImpl implements UserService {
         // DTO를 엔티티로 변환 및 비밀번호 암호화
         User user = User.builder()
                 .account(userRequestDto.getAccount())
-                .password(userRequestDto.getPassword())
+                .password(passwordEncoder.encode(userRequestDto.getPassword()))
                 .name(userRequestDto.getName())
                 .residentNumber(userRequestDto.getResidentNumber())
                 .phoneNumber(userRequestDto.getPhoneNumber())
@@ -55,5 +65,49 @@ public class UserServiceImpl implements UserService {
         User savedUser = userRepository.save(user);
         log.info("회원가입 성공: {}", savedUser.getAccount());
 
+    }
+
+    @Override
+    public void login(UserLoginRequestDto loginRequest) {
+        try {
+            // AuthenticationManager를 통한 인증 시도
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            loginRequest.getAccount(),
+                            loginRequest.getPassword()
+                    )
+            );
+
+            // 인증 성공 → SecurityContext에 저장
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        } catch (Exception e) {
+            throw new CommonException(ExceptionMessage.INVALID_CREDENTIALS);
+        }
+    }
+
+    @Override
+    public UserInfoResponseDto getCurrentUserInfo(String account) {
+        User user = userRepository.findByAccount(account)
+                .orElseThrow(() -> new CommonException(ExceptionMessage.USER_NOT_FOUND));
+
+        return UserInfoResponseDto.builder()
+                .account(user.getAccount())
+                .name(user.getName())
+                .phoneNumber(user.getPhoneNumber())
+                .address(user.getAddress())
+                .residentNumber(user.getResidentNumber())
+                .build();
+    }
+
+
+    /**
+     * 주민등록번호 마스킹 처리 (보안을 위해 로그에 출력 시 사용)
+     */
+    private String maskResidentNumber(String residentNumber) {
+        if (residentNumber == null || residentNumber.length() < 8) {
+            return "*******";
+        }
+        return residentNumber.substring(0, 7) + "******";
     }
 }

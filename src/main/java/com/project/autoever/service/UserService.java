@@ -1,5 +1,7 @@
 package com.project.autoever.service;
 
+import com.project.autoever.dto.UserInfoResponseDto;
+import com.project.autoever.dto.UserLoginRequestDto;
 import com.project.autoever.dto.UserRequestDto;
 
 /**
@@ -15,4 +17,16 @@ public interface UserService {
      */
     void registerUser(UserRequestDto userRequestDto);
 
+    /**
+     * 사용자 로그인 처리
+     * @param loginRequest 로그인 요청 DTO
+     */
+    void login(UserLoginRequestDto loginRequest);
+
+    /**
+     * 현재 로그인한 사용자 정보 반환
+     * @param account 사용자 계정
+     * @return 사용자 상세정보 DTO
+     */
+    UserInfoResponseDto getCurrentUserInfo(String account);
 }
