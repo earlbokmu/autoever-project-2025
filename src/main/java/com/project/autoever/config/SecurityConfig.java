@@ -7,7 +7,6 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
-import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -34,42 +33,33 @@ public class SecurityConfig {
                     "/api/users/login"
                 ).permitAll()
                 // user info endpoint 보안 추가
-                .requestMatchers("/api/v1/admin/**").authenticated()
-                .requestMatchers("/api/users/me").authenticated()
+                .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                //.requestMatchers("/api/users/me").authenticated()
                 // 그 외 API는 인증 필요
                 .anyRequest().authenticated()
             )
+            .formLogin(form -> form
+                    .loginProcessingUrl("/api/users/login")
+                    .permitAll()
+            )
+                //.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED));
             .headers(headers -> headers
                 .frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))
             // Basic Auth 방식 사용
-            .httpBasic()
-            .and()
-            .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
-            
+            .httpBasic();
+
         return http.build();
     }
 
     @Bean
-    public InMemoryUserDetailsManager userDetailsService() {
-        UserDetails admin1 = User.builder()
+    public InMemoryUserDetailsManager userDetailsService(PasswordEncoder passwordEncoder) {
+        UserDetails admin = User.builder()
             .username("admin")
             .password(passwordEncoder().encode("1212"))
             .roles("ADMIN")
             .build();
 
-        UserDetails admin2 = User.builder()
-            .username("autoever")
-            .password(passwordEncoder().encode("1234"))
-            .roles("ADMIN")
-            .build();
-
-        UserDetails admin3 = User.builder()
-            .username("autoever2")
-            .password(passwordEncoder().encode("5678"))
-            .roles("ADMIN")
-            .build();
-
-        return new InMemoryUserDetailsManager(admin1, admin2, admin3);
+        return new InMemoryUserDetailsManager(admin);
     }
 
     @Bean
@@ -82,4 +72,5 @@ public class SecurityConfig {
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
+
 }

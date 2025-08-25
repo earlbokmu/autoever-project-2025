@@ -1,5 +1,6 @@
 package com.project.autoever.controller;
 
+import com.project.autoever.constants.ExceptionMessage;
 import com.project.autoever.dto.UserInfoResponseDto;
 import com.project.autoever.dto.UserLoginRequestDto;
 import com.project.autoever.dto.UserRequestDto;
@@ -7,14 +8,18 @@ import com.project.autoever.security.CustomUserDetails;
 import com.project.autoever.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
@@ -54,41 +59,30 @@ public class UserController {
     @PostMapping("/login")
     public ResponseEntity<String> login(
             @Valid @RequestBody UserLoginRequestDto loginRequest,
-            BindingResult bindingResult) {
+            BindingResult bindingResult, HttpServletRequest request) {
 
         if (bindingResult.hasErrors()) {
             return ResponseEntity.badRequest().body("계정과 비밀번호를 모두 입력해주세요.");
         }
 
         try {
-            // 인증 시도
-            Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                    loginRequest.getAccount(),
-                    loginRequest.getPassword()
-                )
-            );
+            userService.login(loginRequest);
 
-            // 인증 성공 시 세션에 저장
-            SecurityContextHolder.getContext().setAuthentication(authentication);
-
-            return ResponseEntity.ok("{\"message\": \"로그인 성공\"}");
+            return ResponseEntity.ok("로그인 성공");
         } catch (Exception e) {
-            return ResponseEntity.status(401).body("{\"message\": \"로그인 실패: 계정 또는 비밀번호가 올바르지 않습니다.\"}");
+            return ResponseEntity.status(401).body("로그인 실패: 계정 또는 비밀번호가 올바르지 않습니다.");
         }
     }
 
     @Operation(summary = "내 정보 조회", description = "현재 로그인한 사용자의 정보를 조회합니다.")
     @GetMapping("/me")
-    public ResponseEntity<UserInfoResponseDto> getMyInfo() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    public ResponseEntity<UserInfoResponseDto> getMyInfo(
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
 
-        if (authentication == null || !authentication.isAuthenticated() ||
-            authentication.getPrincipal().equals("anonymousUser")) {
-            throw new UsernameNotFoundException("로그인이 필요합니다.");
+        if (userDetails == null) {
+            throw new AuthenticationCredentialsNotFoundException(ExceptionMessage.LOGIN_REQUIRED);
         }
 
-        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
         return ResponseEntity.ok(userService.getCurrentUserInfo(userDetails.getUsername()));
     }
 }
