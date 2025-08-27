@@ -1,7 +1,7 @@
 **개발 환경**
 - Server
     - Java17
-    - Spring Boot 2.2.2
+    - Spring Boot 3.5.5
     - JPA
     - H2
     - Gradle
