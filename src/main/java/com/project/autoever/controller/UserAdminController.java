@@ -3,7 +3,6 @@ package com.project.autoever.controller;
 import com.project.autoever.dto.UserUpdateRequestDto;
 import com.project.autoever.entity.User;
 import com.project.autoever.service.UserAdminService;
-import com.project.autoever.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -21,7 +20,7 @@ public class UserAdminController {
 
     @GetMapping
     public ResponseEntity<Page<User>> getAllUsers(
-            @PageableDefault(size = 100) Pageable pageable) {
+            @PageableDefault(size = 10) Pageable pageable) {
         return ResponseEntity.ok(userAdminService.getAllUsers(pageable));
     }
 
