@@ -12,28 +12,31 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 public class User {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    
+
     @Column(unique = true, nullable = false)
     private String account;
-    
+
     @Column(nullable = false)
     private String password;
-    
+
     @Column(nullable = false)
     private String name;
-    
+
     @Column(name = "resident_number", unique = true, nullable = false, length = 13)
-    @Size(min = 13, max = 13, message = "주민등록번호는 13자리여야 합니다.")
+    @Size(min = 13, max = 14, message = "주민등록번호는 13자리여야 합니다.")
     private String residentNumber;
-    
+
     @Column(name = "phone_number", nullable = false, length = 11)
-    @Size(min = 11, max = 11, message = "핸드폰 번호는 11자리여야 합니다.")
+    @Size(min = 11, max = 13, message = "핸드폰 번호는 11자리여야 합니다.")
     private String phoneNumber;
-    
+
+    @Column(nullable = false)
+    private int age;
+
     @Column(nullable = false)
     private String address;
 }

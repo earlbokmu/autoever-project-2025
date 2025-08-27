@@ -1,18 +1,15 @@
 package com.project.autoever.service.impl;
 
 import com.project.autoever.dto.UserSmsRequestDto;
+import com.project.autoever.entity.User;
 import com.project.autoever.redis.RedisRateLimiter;
 import com.project.autoever.repository.UserRepository;
 import com.project.autoever.service.UserSmsService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
-import com.project.autoever.entity.User;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import java.time.LocalDate;
-import java.time.Period;
 import java.util.List;
 
 
@@ -28,7 +25,7 @@ public class UserSmsServiceImpl implements UserSmsService {
 
     private static final int KAKAO_LIMIT = 100;
     private static final int SMS_LIMIT = 500;
-    private static final int WINDOW_SECONDS = 60;
+    private static final int WINDOW_SECONDS = 60; //1분 당(60초)
 
 
     public void sendMessagesByAgeGroup(int ageGroup, String message) {
@@ -36,7 +33,7 @@ public class UserSmsServiceImpl implements UserSmsService {
 
         List<User> targetUsers = allUsers.stream()
                 .filter(user -> {
-                    int age = calculateAgeFromResidentNumber(user.getResidentNumber());
+                    int age = user.getAge();
                     return age / 10 == ageGroup / 10; // 예: 25세 → 2, 30세 → 3
                 })
                 .toList();
@@ -53,7 +50,7 @@ public class UserSmsServiceImpl implements UserSmsService {
     public void sendMessage(String phone, String message) {
         try {
             // 카카오톡 Rate Limit 체크
-            if (!redisRateLimiter.tryAcquire("rate:kakao", KAKAO_LIMIT, WINDOW_SECONDS)) {
+            if (!redisRateLimiter.tryAcquire("rate:kakao", WINDOW_SECONDS, KAKAO_LIMIT)) {
                 throw new RuntimeException("카카오톡 분당 호출 제한 초과");
             }
 
@@ -71,7 +68,7 @@ public class UserSmsServiceImpl implements UserSmsService {
 
             try {
                 // SMS Rate Limit 체크
-                if (!redisRateLimiter.tryAcquire("rate:sms", SMS_LIMIT, WINDOW_SECONDS)) {
+                if (!redisRateLimiter.tryAcquire("rate:sms", WINDOW_SECONDS, SMS_LIMIT)) {
                     throw new RuntimeException("SMS 분당 호출 제한 초과");
                 }
 
@@ -93,25 +90,5 @@ public class UserSmsServiceImpl implements UserSmsService {
         }
     }
 
-    /*
-    * 주민번호로 연령대 구하기
-    */
-    public static int calculateAgeFromResidentNumber(String rrn) {
-        String birthDate = rrn.substring(0, 6);
-        char genderCode = rrn.charAt(7);
 
-        int year = Integer.parseInt(birthDate.substring(0, 2));
-        int month = Integer.parseInt(birthDate.substring(2, 4));
-        int day = Integer.parseInt(birthDate.substring(4, 6));
-
-        // 세기 판별
-        if (genderCode == '1' || genderCode == '2') {
-            year += 1900;
-        } else if (genderCode == '3' || genderCode == '4') {
-            year += 2000;
-        }
-
-        LocalDate birthday = LocalDate.of(year, month, day);
-        return Period.between(birthday, LocalDate.now()).getYears();
-    }
 }
