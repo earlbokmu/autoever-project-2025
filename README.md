@@ -6,12 +6,12 @@
     - H2
     - Gradle
     - Junit5
-  <br/>
-    <br/>
-      <br/>
+<br/>
+<br/>
+
 **실행 방법**
 
-Docker가 설치되어 있음을 가정함
+Docker, git이 설치되어 있음을 가정
  <br/>
  <br/>
 git에서 프로젝트 클론   
@@ -42,4 +42,11 @@ Redis 실행
 <br/>
 **API 테스트 방법**   
 Swagger API 테스트   
+    - 포트 8080으로 프로젝트 실행   
     - http://localhost:8080/swagger-ui.html 접속   
+<br/>
+<br/>
+Basic Auth 로그인   
+<br/>
+<img width="700" height="372" alt="Image" src="https://github.com/user-attachments/assets/e6145e10-fa9f-416a-a4ba-657512ccd785" />   
+<img width="700" height="618" alt="Image" src="https://github.com/user-attachments/assets/10131ee1-7532-4c6f-a738-8cf207e42f93" />
