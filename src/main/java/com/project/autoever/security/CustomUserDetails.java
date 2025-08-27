@@ -1,6 +1,7 @@
 package com.project.autoever.security;
 
 import com.project.autoever.entity.User;
+import lombok.Builder;
 import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -10,6 +11,7 @@ import java.util.Collection;
 import java.util.Collections;
 
 @Getter
+@Builder
 public class CustomUserDetails implements UserDetails {
 
     private final User user;

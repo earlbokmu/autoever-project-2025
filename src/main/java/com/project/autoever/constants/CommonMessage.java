@@ -1,13 +1,15 @@
 package com.project.autoever.constants;
 
-public class ExceptionMessage {
-    private ExceptionMessage() {
+public class CommonMessage {
+    private CommonMessage() {
         // 인스턴스화 방지
     }
 
     // 인증/인가 관련
     public static final String INVALID_CREDENTIALS = "계정 또는 비밀번호가 올바르지 않습니다.";
     public static final String LOGIN_REQUIRED = "로그인이 필요합니다.";
+    public static final String RESIGSTER_SUCCESS = "회원가입이 완료되었습니다.";
+    public static final String LOGIN_SUCCESS = "로그인에 성공했습니다.";
 
     // 사용자 관련
     public static final String USER_NOT_FOUND = "사용자를 찾을 수 없습니다.";

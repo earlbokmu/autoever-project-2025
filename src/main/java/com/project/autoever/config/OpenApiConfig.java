@@ -16,14 +16,10 @@ public class OpenApiConfig {
         final String securitySchemeName = "bearerAuth";
         
         return new OpenAPI()
-                .addSecurityItem(new SecurityRequirement().addList(securitySchemeName))
+                .addSecurityItem(new SecurityRequirement().addList("basicAuth"))
                 .components(new Components()
-                        .addSecuritySchemes(securitySchemeName,
-                                new SecurityScheme()
-                                        .name(securitySchemeName)
-                                        .type(SecurityScheme.Type.HTTP)
-                                        .scheme("bearer")
-                                        .bearerFormat("JWT")))
+                        .addSecuritySchemes("basicAuth",
+                                new SecurityScheme().type(SecurityScheme.Type.HTTP).scheme("basic")))
                 .info(new Info()
                         .title("Autoever Project API")
                         .description("Autoever Project 2025 API Documentation")

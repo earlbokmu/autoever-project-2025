@@ -24,7 +24,7 @@ public class GlobalExceptionHandler {
         String errorMessage = e.getBindingResult().getFieldError().getDefaultMessage();
         return ResponseEntity
                 .badRequest()
-                .body("입력값 오류: " + errorMessage);
+                .body(errorMessage);
     }
 
     /**
@@ -34,7 +34,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<String> handleIllegalArgumentException(IllegalArgumentException e) {
         return ResponseEntity
                 .badRequest()
-                .body("잘못된 요청: " + e.getMessage());
+                .body(e.getMessage());
     }
 
     /**
@@ -44,6 +44,6 @@ public class GlobalExceptionHandler {
     public ResponseEntity<String> handleGeneralException(Exception e) {
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body("서버 오류: " + e.getMessage());
+                .body(e.getMessage());
     }
 }

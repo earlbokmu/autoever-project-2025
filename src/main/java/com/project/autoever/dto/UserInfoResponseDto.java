@@ -7,8 +7,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Getter
-@NoArgsConstructor
-@AllArgsConstructor
 @Builder
 public class UserInfoResponseDto {
     private String account;
@@ -17,45 +15,18 @@ public class UserInfoResponseDto {
     private String phoneNumber;
     private String address;
 
-    public UserInfoResponseDto(User user) {
-        this.account = user.getAccount();
-        this.name = maskName(user.getName());
-        this.residentNumber = maskResidentNumber(user.getResidentNumber());
-        this.phoneNumber = maskPhoneNumber(user.getPhoneNumber());
-        this.address = extractTopLevelAddress(user.getAddress());
+    public static UserInfoResponseDto from(User user) {
+        return UserInfoResponseDto.builder()
+                .account(user.getAccount())
+                .name(user.getName())
+                .residentNumber(user.getResidentNumber())
+                .phoneNumber(user.getPhoneNumber())
+                .address(extractTopLevelAddress(user.getAddress()))
+                .build();
     }
 
-    private String maskName(String name) {
-        if (name == null || name.isEmpty()) {
-            return "";
-        }
-        if (name.length() == 1) {
-            return name;
-        }
-        if (name.length() == 2) {
-            return name.charAt(0) + "*";
-        }
-        return name.charAt(0) + "*".repeat(name.length() - 2) + name.charAt(name.length() - 1);
-    }
 
-    private String maskResidentNumber(String residentNumber) {
-        if (residentNumber == null || residentNumber.length() < 8) {
-            return "";
-        }
-        return residentNumber.substring(0, 8) + "******";
-    }
-
-    private String maskPhoneNumber(String phoneNumber) {
-        if (phoneNumber == null || phoneNumber.length() < 7) {
-            return "";
-        }
-        // 01012345678 -> 010-****-5678
-        String prefix = phoneNumber.substring(0, 3);
-        String suffix = phoneNumber.substring(phoneNumber.length() - 4);
-        return prefix + "-****-" + suffix;
-    }
-
-    private String extractTopLevelAddress(String address) {
+    private static String extractTopLevelAddress(String address) {
         if (address == null || address.isEmpty()) {
             return "";
         }
