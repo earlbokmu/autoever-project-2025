@@ -43,7 +43,18 @@ Redis 실행
 **API 테스트 방법**   
 Swagger API 테스트   
     - 포트 8080으로 프로젝트 실행   
-    - http://localhost:8080/swagger-ui.html 접속   
+    - http://localhost:8080/swagger-ui.html 접속     
+    <br>
+**유의사항**   
+/api/users/register   
+- 주민번호 등록 시 생년월일이 유효한 값만 가능   
+990101xxxxxxx (가능)   
+123456xxxxxxx (불가)    
+- 주민번호, 핸드폰번호는 하이픈 없이 등록
+  
+/api/sms/   
+연령대 입력할 때는 숫자만   
+- 10, 20, 30.. 처럼 0으로 떨어지게 입력   
 <br/>
 <br/>
 Basic Auth 로그인   
