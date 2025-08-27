@@ -1,12 +1,15 @@
 package com.project.autoever.service.impl;
 
+import com.project.autoever.constants.CommonMessage;
 import com.project.autoever.dto.UserSmsRequestDto;
 import com.project.autoever.entity.User;
+import com.project.autoever.exception.CommonException;
 import com.project.autoever.redis.RedisRateLimiter;
 import com.project.autoever.repository.UserRepository;
 import com.project.autoever.service.UserSmsService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -29,21 +32,16 @@ public class UserSmsServiceImpl implements UserSmsService {
 
 
     public void sendMessagesByAgeGroup(int ageGroup, String message) {
-        List<User> allUsers = userRepository.findAll();
-
-        List<User> targetUsers = allUsers.stream()
-                .filter(user -> {
-                    int age = user.getAge();
-                    return age / 10 == ageGroup / 10; // 예: 25세 → 2, 30세 → 3
-                })
-                .toList();
+        int end = ageGroup + 9;
+        List<User> targetUsers = userRepository.findByAgeBetween(ageGroup, end);
 
         for (User user : targetUsers) {
             //첫줄은 동일하게 시작
-            String str = user.getName() + "님, 안녕하세요. 현대 오토에버입니다.\\n";
+            String str = user.getName() + "님, 안녕하세요. 현대 오토에버입니다.\n";
             message = str + message;
             //phone 포맷은 xxx-xxxx-xxxx
-            sendMessage(user.getPhoneNumber(), message);
+            String phone = user.getPhoneNumber().replaceFirst("(\\d{3})(\\d{4})(\\d{4})", "$1-$2-$3");
+            sendMessage(phone, message);
         }
     }
 
@@ -54,14 +52,26 @@ public class UserSmsServiceImpl implements UserSmsService {
                 throw new RuntimeException("카카오톡 분당 호출 제한 초과");
             }
 
-            kakaoClient.post()
+            ResponseEntity<Void> response = kakaoClient.post()
                     .uri("/kakaotalk-messages")
                     .bodyValue(new UserSmsRequestDto(phone, message))
                     .retrieve()
                     .toBodilessEntity()
                     .block();
 
-            System.out.println("카카오톡 발송 성공: " + phone);
+            if (response == null) {
+                throw new RuntimeException(CommonMessage.SEVER_NOT_RESPONSE);
+            }
+
+            if (response.getStatusCode().is2xxSuccessful()) {
+                // 성공 처리
+                System.out.println("카카오톡 발송 성공: " + phone);
+            } else {
+                // 실패 처리
+                log.error("카카오톡 메시지 발송 실패: {}", response.getStatusCode());
+                throw new RuntimeException("카카오톡 메시지 발송 실패 (status=" + response.getStatusCode() + ")");
+            }
+
 
         } catch (Exception ex) {
             System.out.println("카카오톡 발송 실패 → SMS 시도");

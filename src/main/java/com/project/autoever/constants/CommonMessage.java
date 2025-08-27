@@ -21,5 +21,7 @@ public class CommonMessage {
     public static final String REQUIRED_FIELD_MISSING = "필수 입력값이 누락되었습니다.";
 
     // 서버/DB
-    public static final String INTERNAL_SERVER_ERROR = "서버 내부 오류가 발생했습니다.";
+    public static final String SEVER_NOT_RESPONSE = "서버 응답이 없습니다.";
+
+    public static final String SEND_SMS_SUCCESS = "메시지 발송에 성공하였습니다.";
 }

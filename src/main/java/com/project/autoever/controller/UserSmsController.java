@@ -1,7 +1,9 @@
 package com.project.autoever.controller;
 
+import com.project.autoever.constants.CommonMessage;
 import com.project.autoever.service.UserSmsService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -11,9 +13,13 @@ public class UserSmsController {
     private final UserSmsService userSmsService;
 
     @PostMapping
-    public String sendMessage(@RequestParam String phone, @RequestParam String message) {
-        userSmsService.sendMessage(phone, message);
-        return "메시지 전송 요청 완료";
+    public ResponseEntity<String> sendMessagesByAgeGroup(@RequestParam int ageGroup, @RequestParam String message) {
+        try {
+            userSmsService.sendMessagesByAgeGroup(ageGroup, message);
+            return ResponseEntity.ok(CommonMessage.SEND_SMS_SUCCESS);
+        } catch (Exception e) {
+            return ResponseEntity.ok(e.getMessage());
+        }
     }
 
 }
